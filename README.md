@@ -30,13 +30,7 @@ Students use it beside the slides.
   response. Antagonist blocks 85% of receptors; clearance blocker slows clearance 8×;
   agonist produces a tonic response of 70% of the normal peak.
 
-## Publishing on GitHub Pages
 
-1. Create a new **public** repository named exactly `relay-lab` (the slides' QR codes
-   expect this name).
-2. Upload everything in this folder, keeping the `lib/` folder.
-3. **Settings → Pages**: Deploy from a branch, branch **main**, folder **/ (root)**, Save.
-4. After a minute or two: `https://rakesh-sengupta.github.io/relay-lab/`
 
 ## Credits
 
