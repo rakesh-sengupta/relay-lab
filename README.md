@@ -22,7 +22,7 @@ security: anyone who reads the page source can find the words.
 
 **Privacy:** nothing is saved or sent. Everything runs in the student's browser tab.
 
-## The models (stated honestly in the lab as well)
+## The models
 
 - **Part 1** is not a simulation. Speeds follow rules of thumb fitted to real nerves:
   about 6 m/s per µm of diameter for myelinated mammalian axons (Hursh, 1939), and about
@@ -38,13 +38,6 @@ security: anyone who reads the page source can find the words.
   response. Antagonist blocks 85% of receptors; clearance blocker slows clearance 8×;
   agonist produces a tonic response of 70% of the normal peak.
 
-## Publishing on GitHub Pages
-
-1. Create a new **public** repository named exactly `relay-lab` (the slides' QR codes
-   expect this name).
-2. Upload everything in this folder, keeping the `lib/` folder.
-3. **Settings → Pages**: Deploy from a branch, branch **main**, folder **/ (root)**, Save.
-4. After a minute or two: `https://rakesh-sengupta.github.io/relay-lab/`
 
 ## Credits
 
