@@ -12,6 +12,14 @@ Students use it beside the slides.
 3. **Keys and locks.** Ion-channel versus G-protein receptors, and how agonists,
    antagonists and clearance (reuptake/enzyme) blockers change a synaptic response.
 
+**Pacing:** each part opens only with a password that the teacher shows on that part's
+lab slide, so a class moves together. Once a part is unlocked it stays unlocked in that
+browser tab (so a reload or "Start again" does not lock it again); the free lab at the end
+is never locked. To change the passwords, edit `PASSWORDS` near the middle of the script in
+`index.html` (search for `var PASSWORDS`) and the matching `\pwone`, `\pwtwo`,
+`\pwthree` in the slides. Letter case and spaces are ignored. This is a pacing aid, not
+security: anyone who reads the page source can find the words.
+
 **Privacy:** nothing is saved or sent. Everything runs in the student's browser tab.
 
 ## The models (stated honestly in the lab as well)
@@ -30,7 +38,13 @@ Students use it beside the slides.
   response. Antagonist blocks 85% of receptors; clearance blocker slows clearance 8×;
   agonist produces a tonic response of 70% of the normal peak.
 
+## Publishing on GitHub Pages
 
+1. Create a new **public** repository named exactly `relay-lab` (the slides' QR codes
+   expect this name).
+2. Upload everything in this folder, keeping the `lib/` folder.
+3. **Settings → Pages**: Deploy from a branch, branch **main**, folder **/ (root)**, Save.
+4. After a minute or two: `https://rakesh-sengupta.github.io/relay-lab/`
 
 ## Credits
 

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: a lab bench, as in Spike Lab. Plot on the left, controls and findings on the right; stacks on phones. */
+/* Layout: a lab bench. Plot on the left, controls and findings on the right; stacks on phones. */
 :root {
   --bg: #F3F1EC; --panel: #FFFFFF; --ink: #1C2433; --muted: #5B6475; --rule: #D8D4CB;
   --accent: #1F3A5F; --ok: #23665A; --warn: #A12F24; --stage: #FBFAF7; --grid: #E6E2D9;
@@ -134,6 +134,11 @@ table.lanetbl td.v { font-family: var(--font-num); text-align: right; white-spac
 .seg label { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--stage); font-size: 0.95rem; }
 .seg input { width: 18px; height: 18px; accent-color: var(--accent); }
 .sub { margin: 10px 0 4px; font-weight: 700; font-size: 0.95rem; }
+.gate { max-width: 34rem; }
+.pwrow { display: flex; flex-direction: column; gap: 6px; }
+.pwrow label { font-weight: 700; }
+.pwrow .inrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pwrow input { font: 600 1.15rem var(--font-num); width: 12rem; max-width: 100%; padding: 8px 10px; border-radius: 8px; border: 2px solid var(--rule); background: var(--stage); color: var(--ink); }
 </style>
 </head>
 <body>
@@ -660,6 +665,56 @@ table.lanetbl td.v { font-family: var(--font-num); text-align: right; white-spac
     }
   };
 
+  /* ---------------- password gates ----------------
+     Each part opens only with the password shown on its RELAY LAB slide, so the
+     class moves together. To change them, edit the three words below and the
+     matching \pwone, \pwtwo, \pwthree in the deck. Letter case and spaces are
+     ignored. This paces the class; it is not security (the words are in the page). */
+  var PASSWORDS = { "1": "cheetah", "2": "chorus", "3": "keyring" };
+  var GATE_INFO = {
+    "1": { title: "Along the axon: the race", slide: "Relay Lab, Part 1: the race" },
+    "2": { title: "Across the gap: adding up", slide: "Relay Lab, Part 2: adding up" },
+    "3": { title: "Keys and locks", slide: "Relay Lab, Part 3: keys and locks" }
+  };
+  var UNLOCK_KEY = "relaylab-unlocked";
+  function loadUnlocked() { try { return JSON.parse(sessionStorage.getItem(UNLOCK_KEY)) || {}; } catch (e) { return {}; } }
+  var unlocked = loadUnlocked();
+  function saveUnlocked() { try { sessionStorage.setItem(UNLOCK_KEY, JSON.stringify(unlocked)); } catch (e) {} }
+  function norm(w) { return String(w || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+
+  function PwGate(jsPsych) { this.jsPsych = jsPsych; }
+  PwGate.info = { name: "pw-gate", parameters: { part: { type: PT.STRING, default: "1" } } };
+  PwGate.prototype.trial = function (el, trial) {
+    var self = this, p = trial.part, G = GATE_INFO[p];
+    try { window.scrollTo(0, 0); } catch (e) {}
+    el.innerHTML = '<div class="read gate"><span class="eyebrow">Part ' + p + ' of 3 · locked</span>' +
+      '<h2>' + G.title + '</h2>' +
+      '<div class="calm">Wait for the slide <b>' + G.slide + '</b>. It shows the password for this part. While you wait, look at the slides, not ahead.</div>' +
+      '<form class="pwrow" id="pwform" autocomplete="off"><label for="pw">Password from the slide</label>' +
+      '<div class="inrow"><input id="pw" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="pwfb">' +
+      '<button class="btn" type="submit">Unlock</button></div>' +
+      '<div class="fb" id="pwfb" aria-live="polite"></div></form></div>';
+    var inp = el.querySelector("#pw"), fb = el.querySelector("#pwfb"), tries = 0;
+    try { inp.focus({ preventScroll: true }); } catch (e) {}
+    el.querySelector("#pwform").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var w = norm(inp.value);
+      if (!w) { fb.className = "fb hint"; fb.textContent = "Type the word shown on the slide."; return; }
+      if (w === norm(PASSWORDS[p])) {
+        unlocked[p] = true; saveUnlocked();
+        self.jsPsych.finishTrial({ gate: p, ok: true });
+      } else {
+        tries++;
+        fb.className = "fb hint";
+        fb.textContent = tries < 3 ? "Not that one. Check the spelling on the slide." : "Still not it. Ask a neighbour or your teacher for the word on the slide.";
+        inp.select();
+      }
+    });
+  };
+  function gated(p) {   // the gate shows only if this part has not been unlocked in this tab
+    return { timeline: [{ type: PwGate, part: p }], conditional_function: function () { return !unlocked[p]; } };
+  }
+
   /* ---------------- pages ---------------- */
   var jsPsych = initJsPsych({ display_element: target });
   var welcome = {
@@ -670,8 +725,9 @@ table.lanetbl td.v { font-family: var(--font-num); text-align: right; white-spac
       '<p>A spike has to travel along the axon, cross a gap, and change the next cell. This lab lets you test each step. Use it beside the slides: each part matches a slide.</p>' +
       '<ol class="partlist"><li><b>The race</b>: how axon size and myelin set the speed.</li><li><b>Adding up</b>: the steps of a chemical synapse, and how a neuron sums its inputs.</li>' +
       '<li><b>Keys and locks</b>: receptors, and how drugs copy, block or prolong a transmitter.</li></ol>' +
-      '<div class="calm">Each part takes about 8 minutes. Work alone or with a partner. Questions give instant feedback, and nobody sees your answers. <b>Nothing you do is saved or sent anywhere.</b></div></div>',
-    choices: ["Start Part 1"]
+      '<div class="calm">Each part takes about 8 minutes. Work alone or with a partner. Questions give instant feedback, and nobody sees your answers. <b>Nothing you do is saved or sent anywhere.</b></div>' +
+      '<div class="calm"><b>Each part is locked.</b> Its password appears on the matching slide, so we all move together. No rush: wait for the slide.</div></div>',
+    choices: ["Continue"]
   };
   function partTrial(p) { return { type: RelayLab, part: p }; }
   function resultsHTML() {
@@ -713,7 +769,7 @@ table.lanetbl td.v { font-family: var(--font-num); text-align: right; white-spac
     loop_function: function () { var d = lastData(); return d.go === "results"; }
   };
   var main = {
-    timeline: [partTrial("1"), partTrial("2"), partTrial("3"), resultsLoop],
+    timeline: [gated("1"), partTrial("1"), gated("2"), partTrial("2"), gated("3"), partTrial("3"), resultsLoop],
     loop_function: function () {
       var again = lastData().next === "again";
       if (again) { LAB.fields = {}; LAB.order = false; }
